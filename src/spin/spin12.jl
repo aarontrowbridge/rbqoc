@@ -181,7 +181,7 @@ function RD.discrete_dynamics(::Type{RD.RK3}, model::Model, astate::StaticVector
     s5 = hn_prop * astate[S5_IDX]
     s6 = hn_prop * astate[S6_IDX]
     s7 = hn_prop * astate[S7_IDX]
-p    s8 = hn_prop * astate[S8_IDX]
+    s8 = hn_prop * astate[S8_IDX]
 
     astate_ = [
         state1; state2; intcontrols; controls; dcontrols;
@@ -239,7 +239,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=18., solver_type=altro,
     x_min = fill(-Inf, n)
     x_min[CONTROLS_IDX] .= -MAX_CONTROL_NORM_0
     x_min = SVector{n}(x_min)
-    
+
     # control amplitude constraint at boundary
     x_max_boundary = fill(Inf, n)
     x_max_boundary[CONTROLS_IDX] .= 0
@@ -265,7 +265,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=18., solver_type=altro,
         fill(qs[2], 1); # ∫a
         fill(qs[3], 1); # a
         fill(qs[4], 1); # ∂a
-        fill(0, SAMPLE_COUNT * HDIM_ISO); 
+        fill(0, SAMPLE_COUNT * HDIM_ISO);
     ]))
     Qf = Q * N
     R = Diagonal(SVector{m}([
@@ -359,7 +359,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=18., solver_type=altro,
         "iterations" => iterations_,
         "max_iterations" => max_iterations,
     )
-    
+
     # save
     if save
         save_file_path = generate_file_path("h5", EXPERIMENT_NAME, SAVE_PATH)
@@ -409,7 +409,7 @@ function forward_pass(save_file_path; integrator_type=rk6, gate_type=xpiby2)
         target_state1 = Array(ZPIBY2_ISO_1)
         target_state2 = Array(ZPIBY2_ISO_2)
     end
-    
+
     model = Model(sample_count)
     n = state_dim(model)
     m = control_dim(model)
