@@ -34,8 +34,8 @@ const DCONTROLS_IDX = CONTROLS_IDX[end] + 1:CONTROLS_IDX[end] + CONTROL_COUNT
 const D2CONTROLS_IDX = 1:CONTROL_COUNT
 
 # model
-struct Model <: AbstractModel
-end
+struct Model <: AbstractModel end
+
 @inline RD.state_dim(::Model) = ASTATE_SIZE
 @inline RD.control_dim(::Model) = ACONTROL_SIZE
 
@@ -92,7 +92,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     xf[STATE1_IDX] = target_state1
     xf[STATE2_IDX] = target_state2
     xf = SVector{n}(xf)
-    
+
     # control amplitude constraint
     x_max = fill(Inf, n)
     x_max[CONTROLS_IDX] .= MAX_CONTROL_NORM_0
@@ -100,7 +100,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     x_min = fill(-Inf, n)
     x_min[CONTROLS_IDX] .= -MAX_CONTROL_NORM_0
     x_min = SVector{n}(x_min)
-    
+
     # control amplitude constraint at boundary
     x_max_boundary = fill(Inf, n)
     x_max_boundary[CONTROLS_IDX] .= 0
@@ -143,7 +143,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     # must obey unit norm
     norm_constraints = [NormConstraint(n, m, 1, TO.Equality(), idx)
                         for idx in [STATE1_IDX, STATE2_IDX]]
-    
+
     constraints = ConstraintList(n, m, N)
     add_constraint!(constraints, control_bnd, 2:N-2)
     add_constraint!(constraints, control_bnd_boundary, N-1:N-1)
@@ -219,7 +219,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
         "max_cost_value" => max_cost_value,
         "benchmark_result" => benchmark_result,
     )
-    
+
     # save
     if save
         save_file_path = generate_file_path("h5", EXPERIMENT_NAME, SAVE_PATH)
@@ -233,6 +233,6 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     end
 
     result = benchmark ? benchmark_result : result
-    
+
     return result
 end
