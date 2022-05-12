@@ -11,6 +11,9 @@ using LinearAlgebra
 using RobotDynamics
 using StaticArrays
 using TrajectoryOptimization
+using ForwardDiff
+using FiniteDiff
+
 const RD = RobotDynamics
 const TO = TrajectoryOptimization
 
@@ -34,15 +37,17 @@ const DCONTROLS_IDX = CONTROLS_IDX[end] + 1:CONTROLS_IDX[end] + CONTROL_COUNT
 const D2CONTROLS_IDX = 1:CONTROL_COUNT
 
 # model
-struct Model <: AbstractModel end
+RD.@autodiff struct Model <: RD.DiscreteDynamics end
+
+Base.copy(model::Model) = Model()
 
 @inline RD.state_dim(::Model) = ASTATE_SIZE
 @inline RD.control_dim(::Model) = ACONTROL_SIZE
 
 
 # dynamics
-function RD.discrete_dynamics(::Type{RK3}, model::Model, astate::SVector,
-                              acontrol::SVector, time::Real, dt::Real)
+function RD.discrete_dynamics(model::RD.DiscreteDynamics, astate,
+                              acontrol, time, dt)
     h_prop = exp(dt * (FQ_NEGI_H0_ISO + astate[CONTROLS_IDX[1]] * NEGI_H1_ISO))
     state1 = h_prop * astate[STATE1_IDX]
     state2 = h_prop * astate[STATE2_IDX]
@@ -118,7 +123,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     X0 = [SVector{n}([
         fill(NaN, n);
     ]) for k = 1:N]
-    Z = Traj(X0, U0, dt * ones(N))
+    Z = Traj(X0, U0, dt * ones(N-1))
 
     # cost function
     Q = Diagonal(SVector{n}([
@@ -153,8 +158,11 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     end
 
     # solve problem
-    prob = Problem{IT_RDI[integrator_type]}(model, objective, constraints,
-                                            x0, xf, Z, N, t0, evolution_time)
+    # prob = Problem{IT_RDI[integrator_type]}(model, objective, constraints,
+                                            # x0, xf, Z, N, t0, evolution_time)
+    prob = Problem(model, objective, constraints,
+                   x0, xf, Z, N, t0, evolution_time)
+
     solver = ALTROSolver(prob)
     verbose_pn = verbose ? true : false
     verbose_ = verbose ? 2 : 0
@@ -189,8 +197,9 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     R_arr = [R_raw[i, i] for i in 1:size(R_raw)[1]]
     cidx_arr = Array(CONTROLS_IDX)
     d2cidx_arr = Array(D2CONTROLS_IDX)
-    cmax = TrajectoryOptimization.max_violation(solver)
-    cmax_info = TrajectoryOptimization.findmax_violation(TO.get_constraints(solver))
+    # TODO: these functions seem to exist
+    # cmax = TrajectoryOptimization.max_violation(solver)
+    # cmax_info = TrajectoryOptimization.findmax_violation(TO.get_constraints(solver))
     iterations_ = Altro.iterations(solver)
 
     result = Dict(
@@ -202,8 +211,8 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
         "Q" => Q_arr,
         "Qf" => Qf_arr,
         "R" => R_arr,
-        "cmax" => cmax,
-        "cmax_info" => cmax_info,
+        # "cmax" => cmax,
+        # "cmax_info" => cmax_info,
         "dt" => dt,
         "solver_type" => Integer(solver_type),
         "sqrtbp" => Integer(sqrtbp),

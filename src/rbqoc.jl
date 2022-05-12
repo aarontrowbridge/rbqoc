@@ -47,7 +47,8 @@ end
 
 
 const IT_RDI = Dict(
-    rk2 => RobotDynamics.RK2,
+    # TODO: resolve RK2 property not found error (not in current Roboty)
+    # rk2 => RobotDynamics.RK2,
     rk3 => RobotDynamics.RK3,
     rk4 => RobotDynamics.RK4,
     # rk6 => RobotDynamics.RK6,
@@ -70,7 +71,7 @@ function generate_file_path(extension, file_name, path)
             end
         end
     end
-    
+
     file_path = joinpath(path, "$(lpad(max_numeric_prefix + 1, 5, '0'))_$(file_name).$(extension)")
     return file_path
 end
@@ -167,7 +168,7 @@ function plot_controls(save_file_paths, plot_file_path;
         (controls, controls_dt_inv, evolution_time) = grab_controls(save_file_path)
         (control_eval_count, control_count) = size(controls)
         control_eval_times = Array(0:control_eval_count - 1) / controls_dt_inv
-        
+
         # Plot.
         for j = 1:control_count
             label = isnothing(labels) ? nothing : labels[i][j]
