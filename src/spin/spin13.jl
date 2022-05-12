@@ -197,10 +197,12 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
     R_arr = [R_raw[i, i] for i in 1:size(R_raw)[1]]
     cidx_arr = Array(CONTROLS_IDX)
     d2cidx_arr = Array(D2CONTROLS_IDX)
-    # TODO: these functions seem to exist
+    # TODO: these functions don't seem to exist anymore
     # cmax = TrajectoryOptimization.max_violation(solver)
     # cmax_info = TrajectoryOptimization.findmax_violation(TO.get_constraints(solver))
-    iterations_ = Altro.iterations(solver)
+    stats = solver.stats
+    iterations_ = stats.iterations
+    cmax = stats.c_max
 
     result = Dict(
         "acontrols" => acontrols_arr,
@@ -211,7 +213,7 @@ function run_traj(;gate_type=zpiby2, evolution_time=30., solver_type=altro,
         "Q" => Q_arr,
         "Qf" => Qf_arr,
         "R" => R_arr,
-        # "cmax" => cmax,
+        "cmax" => cmax,
         # "cmax_info" => cmax_info,
         "dt" => dt,
         "solver_type" => Integer(solver_type),
